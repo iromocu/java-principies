@@ -89,6 +89,12 @@ public class Platform {
                 .map( contentFilter -> (Documentary) contentFilter)
                 .toList();
     }
+    public List<Promotional> getContentPromotional(){
+        return catalog.stream()
+                .filter( content -> content instanceof Promotional)
+                .map( contentPromotional -> (Promotional) contentPromotional )
+                .toList();
+    }
 
     public String getName() {
         return name;

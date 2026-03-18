@@ -28,6 +28,9 @@ public class Main {
         Platform platform = new Platform(PLATFORM);
         loadMovies(platform);
         System.out.println("More that " + platform.getTotalDuration() + "  content minutes." );
+        platform.getContentPromotional().forEach(
+                promotional -> System.out.println(promotional.promotion())
+        );
         while (true){
             int opcionElegida = ScannerUtils.captureInt("""
                     Select a option:

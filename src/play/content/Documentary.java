@@ -1,6 +1,6 @@
 package play.content;
 
-public class Documentary extends Content{
+public class Documentary extends Content implements Promotional{
 
     private String announcer;
 
@@ -14,10 +14,6 @@ public class Documentary extends Content{
         this.announcer = announcer;
     }
 
-    public String getAnnouncer() {
-        return announcer;
-    }
-
     @Override
     public String getInfo() {
         return  "🎥" + getTitle()  + "(" + getYear() + ") \n" +
@@ -29,5 +25,14 @@ public class Documentary extends Content{
     @Override
     public void play() {
         System.out.println("Playing documentary " + getTitle() + ", announced by "+ getAnnouncer());
+    }
+
+    @Override
+    public String promotion() {
+        return "💫 Discover the documentary "+ getTitle() + " announced by: " + getAnnouncer();
+    }
+
+    public String getAnnouncer() {
+        return announcer;
     }
 }
