@@ -2,7 +2,9 @@ package play;
 
 import play.content.Gender;
 import play.content.Movie;
+import play.content.ResumeContent;
 import play.platform.Platform;
+import play.utils.MovieExistingException;
 import play.utils.ScannerUtils;
 
 import java.util.List;
@@ -17,8 +19,9 @@ public class Main {
     public static final int SEARCH_TITLE = 3;
     public static final int SEARCH_GENDER = 4;
     public static final int POPULAR = 5;
-    public static final int REMOVE = 6;
-    public static final int EXIT = 7;
+    public static final int PLAYING = 6;
+    public static final int REMOVE = 9;
+    public static final int EXIT = 10;
 
     public static void main(String[] args) {
         System.out.println("🚀 "+ PLATFORM +"  🚀 V:" + VERSION);
@@ -33,8 +36,9 @@ public class Main {
                     3. search for title
                     4. search by gender
                     5. popular
-                    6. delete
-                    7. exit
+                    6. play movie
+                    9. delete
+                    10. exit
                     """);
             switch (opcionElegida){
                 case ADD ->{
@@ -43,11 +47,15 @@ public class Main {
                     int movieDuration = ScannerUtils.captureInt("Movie Duration");
                     double movieRankin = ScannerUtils.captureDouble("Movie Rankin");
                     Movie movie1 = new Movie(movieTitle, movieDuration, Gender.ANIME, movieRankin);
-                    platform.add(movie1);
+                    try{
+                        platform.add(movie1);
+                    }catch (MovieExistingException ex){
+                        System.out.println(ex.getMessage());
+                    }
                 }
                 case SHOW_ALL ->{
-                    List<String> titles = platform.showMovies();
-                    titles.forEach(System.out::println);
+                    List<ResumeContent> movies  = platform.getResumenes();
+                    movies.forEach(movie -> System.out.println(movie.title()));
                 }
                 case SEARCH_GENDER -> {
                     Gender genderSearch = ScannerUtils.captureGender("Search by gender");
@@ -72,6 +80,16 @@ public class Main {
                     int limit = ScannerUtils.captureInt("Select the number of movies: ");
                     List<Movie> popular = platform.getPopularMovies(limit);
                     popular.forEach(movie -> System.out.println(movie.getInfo() + "\n"));
+                }
+                case PLAYING -> {
+                    String movieNameTitle = ScannerUtils.captureText("Search movie:");
+                    Movie movie = platform.searchByTitle(movieNameTitle);
+                    if(movie == null) {
+                        System.out.println("The movie " + movieNameTitle + " has not coincidences.");
+                        break;
+                    }
+                    platform.playMovie(movie);
+
                 }
                 case REMOVE ->{
                     String movieNameTitle = ScannerUtils.captureText("Search movie to delete:");

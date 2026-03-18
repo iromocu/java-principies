@@ -2,27 +2,50 @@ package play.platform;
 
 import play.content.Gender;
 import play.content.Movie;
+import play.content.ResumeContent;
+import play.utils.MovieExistingException;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 public class Platform {
     private String name;
     private List<Movie> content;
+    private Map<Movie, Integer> views;
 
     public Platform(String name) {
         this.name = name;
         this.content = new ArrayList<>();
+        this.views = new HashMap<>();
     }
 
     public void add(Movie movie){
+        Movie searchMovie = this.searchByTitle(movie.getTitle());
+        if(searchMovie != null) throw new MovieExistingException(searchMovie.getTitle());
         this.content.add(movie);
     }
+
+    public void playMovie(Movie movie){
+        int count = views.getOrDefault(movie, 0);
+        System.out.println("The movie has " + count + " views");
+        this.countViews(movie);
+        movie.play();
+    }
+
+    private void countViews(Movie movie){
+        views.put(movie, views.getOrDefault(movie, 0) + 1);
+    }
+
     public List<String> showMovies(){
         return content.stream()
                 .map(Movie::getTitle).toList();
     }
+
+    public List<ResumeContent> getResumenes(){
+        return content.stream()
+                .map(movie -> new ResumeContent(movie.getTitle(), movie.getDuration(), movie.getGender()))
+                .toList();
+    }
+
     public void delete(Movie movie){
         this.content.remove(movie);
     }
