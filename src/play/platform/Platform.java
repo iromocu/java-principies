@@ -3,6 +3,7 @@ package play.platform;
 import play.content.Gender;
 import play.content.Movie;
 import play.content.ResumeContent;
+import play.utils.FileUtils;
 import play.utils.MovieExistingException;
 
 import java.util.*;
@@ -20,7 +21,8 @@ public class Platform {
 
     public void add(Movie movie){
         Movie searchMovie = this.searchByTitle(movie.getTitle());
-        if(searchMovie != null) throw new MovieExistingException(searchMovie.getTitle());
+        if(searchMovie != null) throw new MovieExistingException(movie.getTitle());
+        FileUtils.writeMovie(movie);
         this.content.add(movie);
     }
 

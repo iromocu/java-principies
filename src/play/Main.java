@@ -4,9 +4,14 @@ import play.content.Gender;
 import play.content.Movie;
 import play.content.ResumeContent;
 import play.platform.Platform;
+import play.utils.FileUtils;
 import play.utils.MovieExistingException;
 import play.utils.ScannerUtils;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.List;
 
 public class Main {
@@ -43,10 +48,10 @@ public class Main {
             switch (opcionElegida){
                 case ADD ->{
                     String movieTitle = ScannerUtils.captureText("Movie Title");
-                    String movieGender = ScannerUtils.captureText("Movie Gender");
+                    Gender movieGender = ScannerUtils.captureGender("Movie Gender");
                     int movieDuration = ScannerUtils.captureInt("Movie Duration");
                     double movieRankin = ScannerUtils.captureDouble("Movie Rankin");
-                    Movie movie1 = new Movie(movieTitle, movieDuration, Gender.ANIME, movieRankin);
+                    Movie movie1 = new Movie(movieTitle, movieDuration, movieGender, movieRankin);
                     try{
                         platform.add(movie1);
                     }catch (MovieExistingException ex){
@@ -107,16 +112,7 @@ public class Main {
 
     }
 
-    private static void loadMovies(Platform plataforma) {
-        plataforma.add(new Movie("Shrek", 90, Gender.ANIME));
-        plataforma.add(new Movie("Inception", 148, Gender.SCI_FY));
-        plataforma.add(new Movie("Titanic", 195, Gender.DRAMA, 4.6));
-        plataforma.add(new Movie("John Wick", 101, Gender.ACTION));
-        plataforma.add(new Movie("El Conjuro", 112, Gender.TERROR, 3.0));
-        plataforma.add(new Movie("Coco", 105, Gender.ANIME, 4.7));
-        plataforma.add(new Movie("Interstellar", 169, Gender.SCI_FY, 5));
-        plataforma.add(new Movie("Joker", 122, Gender.DRAMA));
-        plataforma.add(new Movie("Toy Story", 81, Gender.ANIME, 4.5));
-        plataforma.add(new Movie("Avengers: Endgame", 181, Gender.ACTION, 3.9));
+    private static void loadMovies(Platform platform) {
+        platform.getContent().addAll(FileUtils.loadMovies());
     }
 }
