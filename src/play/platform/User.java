@@ -1,6 +1,6 @@
 package play.platform;
 
-import play.content.Movie;
+import play.content.Content;
 
 import java.time.LocalDateTime;
 
@@ -15,9 +15,9 @@ public class User {
         this.name = name;
         this.registerDate = LocalDateTime.now();
     }
-    public void watch(Movie movie){
-        System.out.println(name + " is watching .... " + movie.getTitle());
-        movie.play();
+    public void watch(Content content){
+        System.out.println(name + " is watching .... " + content.getTitle());
+        content.play();
     }
 
     public String getName() {

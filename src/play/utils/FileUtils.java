@@ -1,8 +1,9 @@
 package play.utils;
 
+import play.content.Content;
+import play.content.Documentary;
 import play.content.Gender;
 import play.content.Movie;
-import play.platform.Platform;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,23 +18,33 @@ public class FileUtils {
 
     private static final String FILE_NAME = "content.txt";
     private static final String PIPE = "|";
+    public static final String MOVIE = "MOVIE";
+    public static final String DOCUMENTARY = "DOCUMENTARY";
 
-    public static List<Movie> loadMovies() {
+    public static List<Content> loadMovies() {
         try {
-            List<Movie> moviesLoad = new ArrayList<>();
+            List<Content> moviesLoad = new ArrayList<>();
             List<String> fileLines = Files.readAllLines(Paths.get(FILE_NAME));
             fileLines.forEach(line -> {
                 String [] data = line.split("\\" + PIPE);
-                if(data.length == 5){
-                    String title = data[0];
-                    int duration = Integer.parseInt(data[1]);
-                    Gender genero = Gender.valueOf(data[2]);
-                    double rankin = data[3].isBlank() ? 0 : Double.parseDouble(data[3]);
-                    LocalDate year = LocalDate.parse(data[4]);
-                    Movie newMovie = new Movie(title, duration, genero, rankin);
-                    newMovie.setYear(year);
+                String typeContent = data[0];
+                if((MOVIE.equals(typeContent) && data.length == 6) ||
+                        (DOCUMENTARY.equals(typeContent) && data.length == 7)){
+                    String title = data[1];
+                    int duration = Integer.parseInt(data[2]);
+                    Gender genero = Gender.valueOf(data[3]);
+                    double rankin = data[4].isBlank() ? 0 : Double.parseDouble(data[4]);
+                    LocalDate year = LocalDate.parse(data[5]);
+                    Content newContent;
+                    if(MOVIE.equals(typeContent)){
+                        newContent = new Movie(title, duration, genero, rankin);
+                    }else{
+                        String announcer = data[6];
+                        newContent = new Documentary(title, duration, genero, rankin, announcer);
+                    }
+                    newContent.setYear(year);
 
-                    moviesLoad.add(newMovie);
+                    moviesLoad.add(newContent);
                 }
             });
             return moviesLoad;
@@ -42,17 +53,23 @@ public class FileUtils {
             throw new RuntimeException(e);
         }
     }
-    public static void writeMovie(Movie movie){
+    public static void writeMovie(Content content){
         String line = String.join(PIPE,
-                movie.getTitle(),
-                String.valueOf(movie.getDuration()),
-                movie.getGender().name(),
-                String.valueOf(movie.getRankin()),
-                movie.getYear().toString());
+                content.getTitle(),
+                String.valueOf(content.getDuration()),
+                content.getGender().name(),
+                String.valueOf(content.getRankin()),
+                content.getYear().toString());
+        String finalLine;
+        if(content instanceof Documentary documentary){
+            finalLine = DOCUMENTARY + PIPE + line + PIPE + documentary.getAnnouncer();
+        }else{
+            finalLine = MOVIE + PIPE + line;
+        }
         try {
             Files.writeString(
                     Paths.get(FILE_NAME),
-                    line  + System.lineSeparator(),
+                    finalLine  + System.lineSeparator(),
                     StandardOpenOption.CREATE, StandardOpenOption.APPEND);
         } catch (IOException e) {
             System.out.println("Error to write file!: " + e.getMessage());

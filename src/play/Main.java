@@ -1,17 +1,11 @@
 package play;
 
-import play.content.Gender;
-import play.content.Movie;
-import play.content.ResumeContent;
+import play.content.*;
 import play.platform.Platform;
 import play.utils.FileUtils;
 import play.utils.MovieExistingException;
 import play.utils.ScannerUtils;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.time.LocalDate;
 import java.util.List;
 
 public class Main {
@@ -25,6 +19,7 @@ public class Main {
     public static final int SEARCH_GENDER = 4;
     public static final int POPULAR = 5;
     public static final int PLAYING = 6;
+    public static final int SEARCH_TYPE = 7;
     public static final int REMOVE = 9;
     public static final int EXIT = 10;
 
@@ -41,70 +36,92 @@ public class Main {
                     3. search for title
                     4. search by gender
                     5. popular
-                    6. play movie
+                    6. play content
+                    7. search for type
                     9. delete
                     10. exit
                     """);
             switch (opcionElegida){
                 case ADD ->{
-                    String movieTitle = ScannerUtils.captureText("Movie Title");
-                    Gender movieGender = ScannerUtils.captureGender("Movie Gender");
-                    int movieDuration = ScannerUtils.captureInt("Movie Duration");
-                    double movieRankin = ScannerUtils.captureDouble("Movie Rankin");
-                    Movie movie1 = new Movie(movieTitle, movieDuration, movieGender, movieRankin);
+                    int contentType = ScannerUtils.captureInt("""
+                            1. Movie
+                            2. Documentary
+                            """);
+                    String title = ScannerUtils.captureText("Content Title");
+                    Gender gender = ScannerUtils.captureGender("Content Gender");
+                    int duration = ScannerUtils.captureInt("Content Duration");
+                    double rankin = ScannerUtils.captureDouble("Content Rankin");
                     try{
-                        platform.add(movie1);
+                        if(contentType == 1){
+                            platform.add(new Movie(title, duration, gender, rankin));
+                        }else if( contentType == 2){
+                            String announcer = ScannerUtils.captureText("Announcer");
+                            platform.add(new Documentary(title, duration, gender, rankin, announcer));
+                        }
                     }catch (MovieExistingException ex){
                         System.out.println(ex.getMessage());
                     }
                 }
                 case SHOW_ALL ->{
                     List<ResumeContent> movies  = platform.getResumenes();
-                    movies.forEach(movie -> System.out.println(movie.title()));
+                    movies.forEach(content -> System.out.println(content.title()));
                 }
                 case SEARCH_GENDER -> {
                     Gender genderSearch = ScannerUtils.captureGender("Search by gender");
-                    List<Movie> movies = platform.searchByGender(genderSearch);
-                    if(movies.isEmpty()) {
+                    List<Content> contents = platform.searchByGender(genderSearch);
+                    if(contents.isEmpty()) {
                         System.out.println("The gender " + genderSearch + " has not coincidences.");
                         break;
                     }
-                    System.out.println("The gender " +  genderSearch + " has " + movies.size()  + " coincidences.");
-                    movies.forEach(movie -> System.out.println(movie.getInfo() + "\n"));
+                    System.out.println("The gender " +  genderSearch + " has " + contents.size()  + " coincidences.");
+                    contents.forEach(content -> System.out.println(content.getInfo() + "\n"));
                 }
                 case SEARCH_TITLE -> {
-                    String movieNameTitle = ScannerUtils.captureText("Search movie:");
-                    Movie movie = platform.searchByTitle(movieNameTitle);
-                    if(movie == null) {
-                        System.out.println("The movie " + movieNameTitle + " has not coincidences.");
+                    String movieNameTitle = ScannerUtils.captureText("Search content:");
+                    Content content = platform.searchByTitle(movieNameTitle);
+                    if(content == null) {
+                        System.out.println("The content " + movieNameTitle + " has not coincidences.");
                         break;
                     }
-                    System.out.println(movie.getInfo());
+                    System.out.println(content.getInfo());
                 }
                 case POPULAR -> {
                     int limit = ScannerUtils.captureInt("Select the number of movies: ");
-                    List<Movie> popular = platform.getPopularMovies(limit);
-                    popular.forEach(movie -> System.out.println(movie.getInfo() + "\n"));
+                    List<Content> popular = platform.getPopularMovies(limit);
+                    popular.forEach(content -> System.out.println(content.getInfo() + "\n"));
                 }
                 case PLAYING -> {
-                    String movieNameTitle = ScannerUtils.captureText("Search movie:");
-                    Movie movie = platform.searchByTitle(movieNameTitle);
-                    if(movie == null) {
-                        System.out.println("The movie " + movieNameTitle + " has not coincidences.");
+                    String movieNameTitle = ScannerUtils.captureText("Search content:");
+                    Content content = platform.searchByTitle(movieNameTitle);
+                    if(content == null) {
+                        System.out.println("The content " + movieNameTitle + " has not coincidences.");
                         break;
                     }
-                    platform.playMovie(movie);
+                    platform.playMovie(content);
 
                 }
+                case SEARCH_TYPE -> {
+                    int contentType = ScannerUtils.captureInt("""
+                            1. Movie
+                            2. Documentary
+                            """);
+                    if(contentType == 1){
+                        List<Movie> movies = platform.getMovies();
+                        movies.forEach(movie -> System.out.println(movie.getInfo()));
+                    }else{
+                        List<Documentary> documentaries = platform.getDocumentaries();
+                        documentaries.forEach(documentary -> System.out.println(documentary.getInfo()));
+                    }
+                }
                 case REMOVE ->{
-                    String movieNameTitle = ScannerUtils.captureText("Search movie to delete:");
-                    Movie movie = platform.searchByTitle(movieNameTitle);
-                    if(movie == null) {
-                        System.out.println("The movie " + movieNameTitle + " has not coincidences.");
+                    String movieNameTitle = ScannerUtils.captureText("Search content to delete:");
+                    Content content = platform.searchByTitle(movieNameTitle);
+                    if(content == null) {
+                        System.out.println("The content " + movieNameTitle + " has not coincidences.");
                         break;
                     }
-                    platform.delete(movie);
-                    System.out.println("The movie " + movieNameTitle + " has deleted.");
+                    platform.delete(content);
+                    System.out.println("The content " + movieNameTitle + " has deleted.");
                 }
                 case EXIT -> System.exit(0);
             }
@@ -113,6 +130,6 @@ public class Main {
     }
 
     private static void loadMovies(Platform platform) {
-        platform.getContent().addAll(FileUtils.loadMovies());
+        platform.getCatalog().addAll(FileUtils.loadMovies());
     }
 }
